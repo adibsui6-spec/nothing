@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #3a6186, #89253e);
+    }
+    .calculator {
+      background: #222;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0px 4px 20px rgba(0,0,0,0.4);
+      width: 340px;
+    }
+    .display {
+      background: #111;
+      color: #0f0;
+      font-size: 1.3rem;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      text-align: right;
+      height: 60px;
+      overflow-x: auto;
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    button {
+      padding: 18px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      background: #444;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #666;
+    }
+    .wide {
+      grid-column: span 2;
+    }
+    .mode-selector {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    select {
+      flex: 1;
+      margin-left: 10px;
+      padding: 5px;
+      border-radius: 6px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div class="mode-selector">
+      <label style="color:#fff">Mode:</label>
+      <select id="mode">
+        <option value="basic">Basic</option>
+        <option value="hcf-lcm">HCF & LCM</option>
+        <option value="prime">Prime</option>
+        <option value="converter">Converter</option>
+      </select>
+    </div>
+    <div class="display" id="display">0</div>
+    <div class="btn-grid" id="buttons">
+      <!-- buttons will be generated dynamically -->
+    </div>
+  </div>
+
+  <script>
+    const display = document.getElementById("display");
+    const buttonsContainer = document.getElementById("buttons");
+    const modeSelect = document.getElementById("mode");
+
+    function setDisplay(val){
+      display.textContent = val;
+    }
+
+    function createBasicButtons(){
+      buttonsContainer.innerHTML = "";
+      const btns = [
+        '7','8','9','/',
+        '4','5','6','*',
+        '1','2','3','-',
+        '0','.','=','+',
+        'C'
+      ];
+      btns.forEach(b=>{
+        let btn=document.createElement("button");
+        btn.textContent=b;
+        if(b==='C') btn.classList.add("wide");
+        btn.onclick=()=>handleBasic(b);
+        buttonsContainer.appendChild(btn);
+      });
+    }
+
+    function handleBasic(val){
+      if(val==='C') setDisplay("0");
+      else if(val==='='){
+        try{
+          setDisplay(eval(display.textContent));
+        }catch{
+          setDisplay("Error");
+        }
+      }else{
+        if(display.textContent==='0'||display.textContent==='Error') setDisplay(val);
+        else setDisplay(display.textContent+val);
+      }
+    }
+
+    // HCF and LCM
+    function gcd(a,b){return b==0?a:gcd(b,a%b);}
+    function lcm(a,b){return (a*b)/gcd(a,b);}
+
+    function createHcfLcmButtons(){
+      buttonsContainer.innerHTML="";
+      let input1=document.createElement("input");
+      input1.type="number"; input1.placeholder="Number 1";
+      let input2=document.createElement("input");
+      input2.type="number"; input2.placeholder="Number 2";
+      input1.style.width=input2.style.width="100%";
+      input1.style.marginBottom="5px";
+      buttonsContainer.appendChild(input1);
+      buttonsContainer.appendChild(input2);
+
+      let btn=document.createElement("button");
+      btn.textContent="Find HCF & LCM";
+      btn.classList.add("wide");
+      btn.onclick=()=>{
+        let a=parseInt(input1.value),b=parseInt(input2.value);
+        if(isNaN(a)||isNaN(b)) setDisplay("Enter numbers");
+        else setDisplay(`HCF: ${gcd(a,b)} , LCM: ${lcm(a,b)}`);
+      };
+      buttonsContainer.appendChild(btn);
+    }
+
+    // Prime Check
+    function isPrime(n){
+      if(n<=1) return false;
+      for(let i=2;i<=Math.sqrt(n);i++) if(n%i===0) return false;
+      return true;
+    }
+
+    function createPrimeButtons(){
+      buttonsContainer.innerHTML="";
+      let input=document.createElement("input");
+      input.type="number"; input.placeholder="Enter number";
+      input.style.width="100%";
+      input.style.marginBottom="5px";
+      buttonsContainer.appendChild(input);
+      let btn1=document.createElement("button");
+      btn1.textContent="Check Prime";
+      btn1.classList.add("wide");
+      btn1.onclick=()=>{
+        let n=parseInt(input.value);
+        if(isNaN(n)) setDisplay("Enter number");
+        else setDisplay(isPrime(n)? `${n} is Prime` : `${n} is Not Prime`);
+      };
+      let btn2=document.createElement("button");
+      btn2.textContent="Primes 1-50";
+      btn2.classList.add("wide");
+      btn2.onclick=()=>{
+        let primes=[];
+        for(let i=2;i<=50;i++) if(isPrime(i)) primes.push(i);
+        setDisplay(primes.join(", "));
+      };
+      buttonsContainer.appendChild(btn1);
+      buttonsContainer.appendChild(btn2);
+    }
+
+    // Converter
+    function createConverter(){
+      buttonsContainer.innerHTML="";
+      let input=document.createElement("input");
+      input.type="number"; input.placeholder="Enter value";
+      input.style.width="100%";
+      input.style.marginBottom="5px";
+      buttonsContainer.appendChild(input);
+
+      let from=document.createElement("select");
+      let to=document.createElement("select");
+      let units=["Pressure (Pa->atm)","Money (USD->BDT)","Volume (L->mL)","Area (m²->cm²)","Mass (kg->g)","Time (hr->min)","Energy (J->kJ)","Speed (m/s->km/h)"];
+      units.forEach(u=>{
+        let opt1=document.createElement("option");opt1.textContent=u;from.appendChild(opt1);
+      });
+      to.innerHTML=from.innerHTML;
+
+      from.style.width=to.style.width="100%";
+      from.style.margin="5px 0"; to.style.margin="5px 0";
+      buttonsContainer.appendChild(from);
+
+      let btn=document.createElement("button");
+      btn.textContent="Convert";
+      btn.classList.add("wide");
+      btn.onclick=()=>{
+        let val=parseFloat(input.value);
+        if(isNaN(val)) return setDisplay("Enter value");
+        let choice=from.selectedIndex;
+        switch(choice){
+          case 0:setDisplay(`${val} Pa = ${(val/101325).toFixed(4)} atm`);break;
+          case 1:setDisplay(`${val} USD = ${(val*110).toFixed(2)} BDT`);break; // sample rate
+          case 2:setDisplay(`${val} L = ${(val*1000)} mL`);break;
+          case 3:setDisplay(`${val} m² = ${(val*10000)} cm²`);break;
+          case 4:setDisplay(`${val} kg = ${(val*1000)} g`);break;
+          case 5:setDisplay(`${val} hr = ${(val*60)} min`);break;
+          case 6:setDisplay(`${val} J = ${(val/1000)} kJ`);break;
+          case 7:setDisplay(`${val} m/s = ${(val*3.6)} km/h`);break;
+        }
+      };
+      buttonsContainer.appendChild(btn);
+    }
+
+    modeSelect.onchange=()=>{
+      setDisplay("0");
+      switch(modeSelect.value){
+        case "basic": createBasicButtons();break;
+        case "hcf-lcm": createHcfLcmButtons();break;
+        case "prime": createPrimeButtons();break;
+        case "converter": createConverter();break;
+      }
+    };
+
+    // Default
+    createBasicButtons();
+  </script>
+</body>
+</html>
